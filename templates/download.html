@@ -48,15 +48,32 @@
       <div class="container-fluid background-container pt-100">
         <div class="row justify-content-center">
             <div class="col-md-6 justify-content-center">
-                <form action="{{ url_for('download_file', filename=filename) }}" method="get">
-                  <!-- <a href="{{ url_for('download_file', filename=request.args.get('filename')) }}">Download File</a> -->
+              <ul class="list-group">
+                {% for image in image_paths %}
+                <li class="list-group-item">
+                    <a href="{{ url_for('download_file', filename=image) }}">{{ image }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+                <!-- <form action="{{ url_for('download_file', filename=filename) }}" method="get">
+                 
                     <button type="submit" class="btn btn-custom justify-content-center">Save as PDF</button>
-                </form>
+                </form> -->
                 
           </div>
         </div>
       </div>
       
+      <!-- <div class="container mt-5">
+        <h1>Download Converted Files</h1>
+        <ul class="list-group">
+            {% for image in image_paths %}
+            <li class="list-group-item">
+                <a href="{{ url_for('download_file', filename=image) }}">{{ image }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div> -->
       
 
 

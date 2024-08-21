@@ -1,55 +1,55 @@
-from pdf2image import convert_from_bytes
-from flask import Blueprint, render_template
-import tabula
-import pandas as pd
-from PIL import Image
-from fpdf import FPDF
-
-import uuid
-
-# Generate a random UUID
-
-image_app = Blueprint('auth', __name__)
+from flask import Blueprint, render_template, current_app
+import os
+import fitz  # PyMuPDF
+# from pdf2docx import Document
 
 
-@image_app.route('pdf_to_image/<filename>')
-def pdf_to_image(filename):
-    images = convert_from_bytes(open(filename, 'rb').read(
-    ), poppler_path=r"poppler-0.68.0_x86\poppler-0.68.0\bin")
-    for i in range(len(images)):
-        # Save pages as images in the pdf
-        images[i].save(f'image_{i+1}.png', 'PNG')
-    return render_template('')
+image_app = Blueprint('image_app', __name__)
 
+@image_app.route('/pdf_to_image/<filename>/<extension>')
+def pdf_to_image(filename, extension):
+    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    doc = fitz.open(file_path)
 
-@image_app.route()
-def pdf_to_excel():
-    pdf_path = './Thembela.pdf'
+    image_paths = []
+    for page_num in range(len(doc)):
+        page = doc.load_page(page_num)
+        pix = page.get_pixmap()
+        image_filename = f'{filename}{page_num + 1}.{extension}'
+        image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
+        pix.save(image_path)
+        image_paths.append(image_filename)
 
-    # Extract tables from the PDF file
-    tables = tabula.read_pdf(pdf_path, pages='all', multiple_tables=True)
-
-    # Convert each table to an Excel sheet
-    with pd.ExcelWriter('output.xlsx', engine='openpyxl') as writer:
-        for i, table in enumerate(tables):
-            table.to_excel(writer, sheet_name=f'Sheet{i+1}', index=False)
+    return render_template('download.html', image_paths=image_paths)
 
 
 
-@image_app.route()
-def image_to_pdf():
-    # Specify the image file path
-    image_path = 'your_image.jpg'
 
-    # Load the image using Pillow
-    image = Image.open(image_path)
 
-    # Convert the image to RGB (if it's not already in RGB mode)
-    if image.mode in ("RGBA", "P"):
-        image = image.convert("RGB")
 
-    # Save the image as a PDF
-    pdf_path = 'output.pdf'
-    image.save(pdf_path)
 
-    print("Image successfully converted to PDF")
+
+
+
+
+# @image_app.route('/pdf_to_docx/<filename>')
+# def pdf_to_docx(filename):
+#     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+#     docx_filename = filename.rsplit('.', 1)[0] + '.docx'
+#     docx_path = os.path.join(current_app.config['UPLOAD_FOLDER'], docx_filename)
+
+#     # Extract text from PDF and write to DOCX
+#     try:
+#         pdf_doc = fitz.open(file_path)
+#         docx_doc = Document()
+
+#         for page_num in range(len(pdf_doc)):
+#             page = pdf_doc.load_page(page_num)
+#             text = page.get_text()
+#             docx_doc.add_paragraph(text)
+        
+#         docx_doc.save(docx_path)
+#     except Exception as e:
+#         return str(e)
+
+#     return render_template('download.html', image_paths=docx_filename)
