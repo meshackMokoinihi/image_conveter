@@ -32,6 +32,10 @@ def pdf_to_image(filename, extension):
 
 
 
+
+
+
+
 # @image_app.route('/pdf_to_docx/<filename>')
 # def pdf_to_docx(filename):
 #     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
@@ -53,3 +57,28 @@ def pdf_to_image(filename, extension):
 #         return str(e)
 
 #     return render_template('download.html', image_paths=docx_filename)
+
+
+
+
+from flask import Flask, request, send_file
+from PIL import Image
+import os
+
+
+
+@image_app.route('/image_to_pdf/<filename>', methods=['GET'])
+def image_to_pdf(filename):
+    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    if not os.path.exists(file_path):
+        return "File not found", 404
+
+    # Open the image and convert it to PDF
+    image = Image.open(file_path)
+    pdf_filename = f"{os.path.splitext(filename)[0]}.pdf"
+    pdf_path = os.path.join(current_app.config['UPLOAD_FOLDER'], pdf_filename)
+    image.save(pdf_path, "PDF", resolution=100.0)
+
+    return send_file(pdf_path, as_attachment=True)
+
+

@@ -57,12 +57,13 @@
                             <li><a class="dropdown-item" href="#" data-action="/merge_pdf">Merge PDF files</a></li>
                             <li><a class="dropdown-item" href="#" data-action="/encrypt_pdf">Encrypt PDF</a></li>
                             <li><a class="dropdown-item" href="#" data-action="/dencrypt_pdf">Decrypt PDF</a></li>
+                            <li><a class="dropdown-item" href="#" data-action="/edit_pdf">Edit PDF</a></li>
                         </ul>
                     </div>
                     
                     <!-- Hidden Form Section -->
                     <div id="pdfFormSection" class="bg-white p-4 rounded d-none">
-                        <form id="pdfForm" method="post" enctype="multipart/form-data">
+                        <form id="pdfForm" for='Upload' method="post" enctype="multipart/form-data">
                             <label for="Upload" class="form-label">Upload file (.pdf, .png, etc)</label>
                             <div class="mb-3">
                                 <input type="file" name="file" class="form-control" id="Upload" required>
@@ -70,6 +71,10 @@
                             <div id="passwordField" class="mb-3 d-none">
                                 <label for="password" class="form-label">Enter Password</label>
                                 <input type="password" name="password" class="form-control" id="password">
+                            </div>
+                            <div id="page_number" class="mb-3 d-none">
+                                <label for="passpage_numberword" class="form-label">Enter Page Number</label>
+                                <input type="page_number" name="page_number" class="form-control" id="page_number">
                             </div>
                             <button type="submit" class="btn btn-primary w-100">Submit</button>
                         </form>
@@ -101,7 +106,7 @@
                                     <option selected>Select format</option>
                                     <option value="png">PNG</option>
                                     <option value="jpg">JPG</option>
-                                    <option value="pdf">PDF</option>
+                                    <option value="pdf">Any Image To PDF</option>
                                 </select>
                                 <div class="mb-3">
                                     <input type="file" name="file" class="form-control" id="Upload">
@@ -211,6 +216,32 @@
                     passwordField.classList.remove('d-none');
                 } else {
                     passwordField.classList.add('d-none');
+                }
+    
+                // Show the form section
+                pdfFormSection.classList.remove('d-none');
+            });
+        });
+    });
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+        const pdfFormSection = document.getElementById('pdfFormSection');
+        const pdfForm = document.getElementById('pdfForm');
+        const page_number = document.getElementById('page_number');
+    
+        dropdownItems.forEach((item) => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const actionUrl = item.getAttribute('data-action');
+                pdfForm.setAttribute('action', actionUrl);
+    
+                // Show password field for encryption
+                if (actionUrl === '/extract_text') {
+                    page_number.classList.remove('d-none');
+                } else {
+                    page_number.classList.add('d-none');
                 }
     
                 // Show the form section

@@ -9,6 +9,7 @@ import pdfkit
 import asyncio
 from pyppeteer import launch
 from blueprints import workink_with_pdf as wpdf
+from PIL import Image
 
 
 app = Flask(__name__, template_folder='templates')
@@ -29,6 +30,9 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'docx'}
 
 def allowed_files(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -56,7 +60,6 @@ def upload_file():
             if format == 'pdf':
                 # Handle conversion from image to PDF
                 pdf_path = os.path.join('uploads', f"{os.path.splitext(filename)[0]}.pdf")
-                # Convert the image to a PDF
                 convert_image_to_pdf(file_path, pdf_path)
                 flash('File successfully converted to PDF')
                 return redirect(url_for('download_file', filename=f"{os.path.splitext(filename)[0]}.pdf"))
@@ -66,12 +69,12 @@ def upload_file():
         
     return render_template('index.html')
 
-# Example function to convert an image to PDF
 def convert_image_to_pdf(image_path, pdf_path):
-    from PIL import Image
     image = Image.open(image_path)
     image = image.convert('RGB')  # Ensure the image is in RGB mode
     image.save(pdf_path)
+
+
 
 
 
