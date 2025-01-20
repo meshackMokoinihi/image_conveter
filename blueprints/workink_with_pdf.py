@@ -16,7 +16,9 @@ wPdf = Blueprint('workingPdf', __name__ )
 
 from pypdf import PdfReader, PdfWriter
 ENCRYPTED_DIR = "encrypted_files"
+DECRYPTED_DIR = "dencrypted_files"
 os.makedirs(ENCRYPTED_DIR, exist_ok=True)
+os.makedirs(DECRYPTED_DIR, exist_ok=True)
 
 @wPdf.route('/extract_images', methods=['POST', 'GET'])
 def extract_images():
@@ -149,18 +151,40 @@ def encrypt_pdf():
     return render_template('encrypted.html', filename=output_filename)
     
     
-@wPdf.route('/dencrypt_pdf', methods=['POST', 'GET'])
-def dencrypt_pdf():
-    reader = PdfReader("encrypted-pdf.pdf")
+import os
+
+@wPdf.route('/decrypt_pdf', methods=['POST'])
+def decrypt_pdf():
+    uploaded_file = request.files['file']  # Get the uploaded file
+    password = request.form.get('password')  # Get the password from the form
+
+    if not password:
+        return "Password is required for decryption.", 400
+
+    reader = PdfReader(uploaded_file)
 
     if reader.is_encrypted:
-        reader.decrypt("my-secret-password")
+        try:
+            reader.decrypt(password)
+        except Exception as e:
+            return f"Decryption failed: {str(e)}", 400
 
     writer = PdfWriter(clone_from=reader)
 
-    # Save the new PDF to a file
-    with open("decrypted-pdf.pdf", "wb") as f:
+    output_filename = "decrypted_" + uploaded_file.filename
+    output_path = os.path.join("DECRYPTED_DIR", output_filename)
+
+    # Check if the directory exists, if not create it
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    # Save the decrypted PDF to the specified directory
+    with open(output_path, "wb") as f:
         writer.write(f)
+
+    # Render the download page
+    return render_template('encrypted.html', filename=output_filename)
+
+
         
         
 @wPdf.route('/download/<filename>')

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
+</head>
+<body>
+    <h1>Admin Panel</h1>
+    <h2>Recent Visits</h2>
+    <ul>
+    {% for visit in visits %}
+        <li>{{ visit.timestamp }} - {{ visit.ip_address }}</li>
+    {% endfor %}
+    </ul>
+    <h2>Live Users (last 5 minutes)</h2>
+    <ul>
+    {% for user in live_users %}
+        <li>{{ user.timestamp }} - {{ user.ip_address }}</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

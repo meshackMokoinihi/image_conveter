@@ -56,7 +56,7 @@
                             <li><a class="dropdown-item" href="#" data-action="/extract_text">Extract Text</a></li>
                             <li><a class="dropdown-item" href="#" data-action="/merge_pdf">Merge PDF files</a></li>
                             <li><a class="dropdown-item" href="#" data-action="/encrypt_pdf">Encrypt PDF</a></li>
-                            <li><a class="dropdown-item" href="#" data-action="/dencrypt_pdf">Decrypt PDF</a></li>
+                            <li><a class="dropdown-item" href="#" data-action="/decrypt_pdf">Decrypt PDF</a></li>
                             <li><a class="dropdown-item" href="#" data-action="/edit_pdf">Edit PDF</a></li>
                         </ul>
                     </div>
@@ -72,6 +72,8 @@
                                 <label for="password" class="form-label">Enter Password</label>
                                 <input type="password" name="password" class="form-control" id="password">
                             </div>
+                            
+                            
                             <div id="page_number" class="mb-3 d-none">
                                 <label for="passpage_numberword" class="form-label">Enter Page Number</label>
                                 <input type="page_number" name="page_number" class="form-control" id="page_number">
@@ -223,6 +225,38 @@
             });
         });
     });
+
+
+
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+        const pdfFormSection = document.getElementById('pdfFormSection');
+        const pdfForm = document.getElementById('pdfForm');
+        const passwordField = document.getElementById('passwordField');
+    
+        dropdownItems.forEach((item) => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const actionUrl = item.getAttribute('data-action');
+                pdfForm.setAttribute('action', actionUrl);
+    
+                // Show password field for encryption
+                if (actionUrl === '/decrypt_pdf') {
+                    passwordField.classList.remove('d-none');
+                } else {
+                    passwordField.classList.add('d-none');
+                }
+    
+                // Show the form section
+                pdfFormSection.classList.remove('d-none');
+            });
+        });
+    });
+
+
+    
 
 
     document.addEventListener('DOMContentLoaded', () => {
