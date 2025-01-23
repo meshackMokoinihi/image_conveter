@@ -8,7 +8,10 @@ import io
 from PyPDF2 import PdfWriter, PdfReader
 from fpdf import FPDF
 import pdfplumber
-
+from docx2pdf import convert as docx_to_pdf_convert
+from pdf2docx import Converter as pdf_to_docx_convert
+from urllib.parse import unquote
+import pypandoc
 
 
 wPdf = Blueprint('workingPdf', __name__ )
@@ -126,37 +129,29 @@ def download_all():
 
 
 
-    
-    
 @wPdf.route('/encrypt_pdf', methods=['POST'])
 def encrypt_pdf():
-    uploaded_file = request.files['file']  # Get the uploaded file
-    password = request.form.get('password')  # Get the password from the form
+    uploaded_file = request.files['file']
+    password = request.form.get('encryptionPassword')
 
     if not password:
         return "Password is required for encryption.", 400
 
     reader = PdfReader(uploaded_file)
     writer = PdfWriter(clone_from=reader)
-
-    # Encrypt the PDF with the provided password
-    output_filename = "encrypted_" + uploaded_file.filename
-    output_path = os.path.join(ENCRYPTED_DIR, output_filename)
     writer.encrypt(password, algorithm="AES-256")
 
+    output_filename = uploaded_file.filename
+    output_path = os.path.join(ENCRYPTED_DIR, output_filename)
     with open(output_path, "wb") as f:
         writer.write(f)
 
-    # Render the download page
     return render_template('encrypted.html', filename=output_filename)
-    
-    
-import os
 
 @wPdf.route('/decrypt_pdf', methods=['POST'])
 def decrypt_pdf():
-    uploaded_file = request.files['file']  # Get the uploaded file
-    password = request.form.get('password')  # Get the password from the form
+    uploaded_file = request.files['file']
+    password = request.form.get('password')
 
     if not password:
         return "Password is required for decryption.", 400
@@ -171,26 +166,25 @@ def decrypt_pdf():
 
     writer = PdfWriter(clone_from=reader)
 
-    output_filename = "decrypted_" + uploaded_file.filename
-    output_path = os.path.join("DECRYPTED_DIR", output_filename)
-
-    # Check if the directory exists, if not create it
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
-    # Save the decrypted PDF to the specified directory
+    output_filename = uploaded_file.filename
+    output_path = os.path.join(DECRYPTED_DIR, output_filename)
     with open(output_path, "wb") as f:
         writer.write(f)
 
-    # Render the download page
-    return render_template('encrypted.html', filename=output_filename)
+    return render_template('decrypted.html', filename=output_filename)
 
-
-        
-        
 @wPdf.route('/download/<filename>')
 def download_file(filename):
-    # Ensure the file exists in the encrypted directory
+    print(filename)
     return send_from_directory(ENCRYPTED_DIR, filename, as_attachment=True)
+
+@wPdf.route('/download_decrypted/<filename>')
+def download_decrypted(filename):
+    
+    return send_from_directory(DECRYPTED_DIR, filename, as_attachment=True)
+
+
+
 
 
 
@@ -506,3 +500,71 @@ def edit_pdf():
     ''', filename=uploaded_file.filename)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+DOCX_DIR = "docx_files"
+PDF_DIR = "pdf_files"
+
+
+os.makedirs(DOCX_DIR, exist_ok=True)
+os.makedirs(PDF_DIR, exist_ok=True)
+
+
+
+@wPdf.route('/convert_docx_to_pdf', methods=['POST'])
+def convert_docx_to_pdf():
+    uploaded_file = request.files['file']
+    docx_path = os.path.join(DOCX_DIR, uploaded_file.filename)
+    uploaded_file.save(docx_path)
+
+    # Convert DOCX to PDF using pypandoc
+    output_filename = f"{os.path.splitext(uploaded_file.filename)[0]}.pdf"
+    pdf_output_path = os.path.join(PDF_DIR, output_filename)
+    pypandoc.convert_file(docx_path, 'pdf', outputfile=pdf_output_path)
+
+    return render_template('docxtopdf.html', filename=os.path.basename(pdf_output_path) )
+
+
+
+@wPdf.route('/convert_pdf_to_docx', methods=['POST', 'GET'])
+def convert_pdf_to_docx():
+    uploaded_file = request.files['file']
+    output_filename = f"{os.path.splitext(uploaded_file.filename)[0]}.docx"
+    output_path = os.path.join(DOCX_DIR, output_filename)
+
+    pdf_path = os.path.join(PDF_DIR, uploaded_file.filename)
+    uploaded_file.save(pdf_path)
+
+    # Convert PDF to DOCX
+    cv = pdf_to_docx_convert(pdf_path)
+    cv.convert(output_path)
+    cv.close()
+
+    return render_template('pdftodocx.html', filename=output_filename)
+
+
+
+@wPdf.route('/download_pdf_to_docx/<filename>')
+def download_pdf_to_docx(filename):
+    print(filename)
+    if '%' in filename:
+        filename.replace('%', ' ')
+    return send_from_directory(DOCX_DIR, filename, as_attachment=True)
+
+
+@wPdf.route('/download_docx_to_pdf/<filename>')
+def download_docx_to_pdf(filename):
+    print(filename)
+    if '%' in filename:
+        filename.replace('%', ' ')
+    return send_from_directory(PDF_DIR, filename, as_attachment=True)
