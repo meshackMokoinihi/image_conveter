@@ -6,7 +6,7 @@ import fitz  # PyMuPDF
 import zipfile 
 import io
 from PyPDF2 import PdfWriter, PdfReader
-from fpdf import FPDF
+# from fpdf import FPDF
 import pdfplumber
 from docx2pdf import convert as docx_to_pdf_convert
 from pdf2docx import Converter as pdf_to_docx_convert
