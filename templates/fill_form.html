@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Edit PDF</title>
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <style>
+        #pdf-container {
+            position: relative;
+            border: 1px solid #ccc;
+            width: 80%;
+            margin: auto;
+        }
+        canvas {
+            display: block;
+            margin: auto;
+        }
+        .text-field {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #000;
+        }
+        .pen-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #007bff;
+            color: #fff;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="pdf-container">
+        <canvas id="pdf-canvas"></canvas>
+    </div>
+    <button class="pen-icon" id="add-text-field">🖊</button>
+    <button onclick="savePdf()">Save PDF</button>
+    <form id="save-pdf-form" action="/save_pdf" method="post">
+        <input type="hidden" name="pdf_path" value="{{ filepath }}">
+        <input type="hidden" id="annotations" name="annotations">
+    </form>
+
+    <script>
+        const pdfPath = "{{ filepath }}";
+        const container = document.getElementById('pdf-container');
+        const canvas = document.getElementById('pdf-canvas');
+        const penIcon = document.getElementById('add-text-field');
+        const annotations = [];
+
+        // Load the PDF
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
+
+        const loadingTask = pdfjsLib.getDocument(pdfPath);
+        loadingTask.promise.then(function(pdf) {
+            return pdf.getPage(1).then(function(page) {
+                const viewport = page.getViewport({ scale: 1.5 });
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                const context = canvas.getContext('2d');
+                page.render({
+                    canvasContext: context,
+                    viewport: viewport
+                });
+            });
+        });
+
+        // Add a text field
+        penIcon.addEventListener('click', () => {
+            const textField = document.createElement('div');
+            textField.contentEditable = true;
+            textField.className = 'text-field';
+            textField.style.left = '50px';
+            textField.style.top = '50px';
+            textField.style.width = '200px';
+            textField.style.height = '30px';
+            textField.textContent = 'Enter text';
+            textField.addEventListener('blur', () => {
+                annotations.push({
+                    page: 0, // Assuming single-page for simplicity
+                    x: parseInt(textField.style.left),
+                    y: parseInt(textField.style.top),
+                    text: textField.textContent
+                });
+            });
+            container.appendChild(textField);
+
+            // Make draggable
+            textField.style.position = 'absolute';
+            textField.draggable = true;
+            textField.addEventListener('dragend', (event) => {
+                textField.style.left = event.pageX + 'px';
+                textField.style.top = event.pageY + 'px';
+            });
+        });
+
+        // Save PDF
+        function savePdf() {
+            const form = document.getElementById('save-pdf-form');
+            document.getElementById('annotations').value = JSON.stringify(annotations);
+            form.submit();
+        }
+    </script>
+</body>
+</html>

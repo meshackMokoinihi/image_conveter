@@ -2,7 +2,7 @@ from flask import Flask, Blueprint, request, render_template_string, render_temp
 import os
 from pdf2image import convert_from_bytes
 from flask import Flask, request, render_template_string
-import fitz  # PyMuPDF
+from PyMuPDF import fitz # PyMuPDF
 import zipfile 
 import io
 from PyPDF2 import PdfWriter, PdfReader
