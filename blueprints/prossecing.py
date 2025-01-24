@@ -1,32 +1,32 @@
-from flask import Blueprint, render_template, current_app
+from flask import Blueprint, current_app, render_template, send_from_directory
+from pdf2image import convert_from_path
 import os
-from pymupdf import fitz # PyMuPDF
-import fitz  # PyMuPDF
-
-
-# from pdf2docx import Document
-
 
 image_app = Blueprint('image_app', __name__)
 
 @image_app.route('/pdf_to_image/<filename>/<extension>')
 def pdf_to_image(filename, extension):
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-    doc = fitz.open(file_path)
+    
+    # Ensure the file exists
+    if not os.path.exists(file_path):
+        return "File not found", 404
 
-    image_paths = []
-    for page_num in range(len(doc)):
-        page = doc.load_page(page_num)
-        pix = page.get_pixmap()
-        image_filename = f'{filename}{page_num + 1}.{extension}'
-        image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
-        pix.save(image_path)
-        image_paths.append(image_filename)
+    try:
+        # Convert PDF to images
+        pages = convert_from_path(file_path, dpi=200)  # Adjust DPI if needed
+        image_paths = []
 
-    return render_template('download.html', image_paths=image_paths)
+        for page_num, page in enumerate(pages, start=1):
+            image_filename = f"{os.path.splitext(filename)[0]}_page{page_num}.{extension}"
+            image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
+            page.save(image_path, extension.upper())
+            image_paths.append(image_filename)
 
-
-
+        return render_template('download.html', image_paths=image_paths)
+    
+    except Exception as e:
+        return f"Error processing PDF: {str(e)}", 500
 
 
 

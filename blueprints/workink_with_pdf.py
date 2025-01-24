@@ -5,15 +5,15 @@ from flask import Flask, request, render_template_string
 import zipfile 
 import io
 from PyPDF2 import PdfWriter, PdfReader
-from pymupdf import fitz # PyMuPDF
 from fpdf import FPDF
 import pdfplumber
 from docx2pdf import convert as docx_to_pdf_convert
 from pdf2docx import Converter as pdf_to_docx_convert
 from urllib.parse import unquote
 import pypandoc
+from PIL import Image
+from io import BytesIO
 
-import fitz  # PyMuPDF
 
 wPdf = Blueprint('workingPdf', __name__ )
 
@@ -27,28 +27,36 @@ os.makedirs(DECRYPTED_DIR, exist_ok=True)
 def extract_images():
     if request.method == 'POST':
         uploaded_file = request.files['file']
-        pdf_document = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        if not uploaded_file or not uploaded_file.filename.endswith('.pdf'):
+            return "Please upload a valid PDF file."
 
+        # Load the PDF
+        pdf_reader = PdfReader(uploaded_file)
         output_dir = "static/extracted_images"
         os.makedirs(output_dir, exist_ok=True)
 
         image_paths = []
 
-        for page_number in range(len(pdf_document)):
-            page = pdf_document.load_page(page_number)
-            images = page.get_images(full=True)
+        # Iterate through pages
+        for page_number, page in enumerate(pdf_reader.pages):
+            if '/XObject' in page['/Resources']:
+                xObject = page['/Resources']['/XObject'].get_object()
+                for obj_name in xObject:
+                    obj = xObject[obj_name]
+                    if obj['/Subtype'] == '/Image':
+                        # Extract image data
+                        image_data = obj.get_data()
+                        width = obj['/Width']
+                        height = obj['/Height']
+                        image_ext = "jpg" if obj['/ColorSpace'] == '/DeviceRGB' else "png"
 
-            for img_index, img in enumerate(images):
-                xref = img[0]
-                base_image = pdf_document.extract_image(xref)
-                image_bytes = base_image["image"]
-                image_ext = base_image["ext"]
-                image_path = os.path.join(output_dir, f"page_{page_number + 1}_image_{img_index + 1}.{image_ext}")
+                        # Save the image
+                        image = Image.open(BytesIO(image_data))
+                        image_path = os.path.join(output_dir, f"page_{page_number + 1}_{obj_name}.{image_ext}")
+                        image.save(image_path)
 
-                with open(image_path, "wb") as img_file:
-                    img_file.write(image_bytes)
-
-                image_paths.append(f"extracted_images/{os.path.basename(image_path)}")
+                        # Append relative path for later rendering
+                        image_paths.append(f"extracted_images/{os.path.basename(image_path)}")
 
         return render_template_string('''
             <!DOCTYPE html>
