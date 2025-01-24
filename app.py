@@ -4,7 +4,7 @@ from blueprints.prossecing import image_app
 from textblob import TextBlob
 import nltk
 from nltk import sent_tokenize
-import URRICULUM VITAE
+import language_tool_python
 import pdfkit
 import asyncio
 from pyppeteer import launch
