@@ -63,7 +63,6 @@ pyppeteer==2.0.0
 python-dateutil==2.9.0.post0
 python-docx==1.1.2
 pytz==2024.2
-pywin32==227
 pyxnat==1.6.2
 rdflib==6.3.2
 regex==2024.11.6
