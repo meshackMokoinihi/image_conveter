@@ -17,7 +17,6 @@ import pypandoc
 wPdf = Blueprint('workingPdf', __name__ )
 
 
-from pypdf import PdfReader, PdfWriter
 ENCRYPTED_DIR = "encrypted_files"
 DECRYPTED_DIR = "dencrypted_files"
 os.makedirs(ENCRYPTED_DIR, exist_ok=True)
