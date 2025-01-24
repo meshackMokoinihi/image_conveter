@@ -13,6 +13,7 @@ from pdf2docx import Converter as pdf_to_docx_convert
 from urllib.parse import unquote
 import pypandoc
 
+import fitz  # PyMuPDF
 
 wPdf = Blueprint('workingPdf', __name__ )
 
