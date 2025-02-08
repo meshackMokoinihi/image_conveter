@@ -205,7 +205,7 @@ def convert_to_pdf():
         return jsonify({"error": str(e)}), 500
     
 
-app.register_blueprint(prossecing.image_app)
+# app.register_blueprint(prossecing.image_app)
 app.register_blueprint(wpdf.wPdf)
 
 
