@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash, current_app, jsonify, send_file
 import os 
-from blueprints.prossecing import image_app
+from blueprints import prossecing
 from textblob import TextBlob
 import nltk
 from nltk import sent_tokenize
@@ -205,7 +205,7 @@ def convert_to_pdf():
         return jsonify({"error": str(e)}), 500
     
 
-app.register_blueprint(image_app)
+app.register_blueprint(prossecing.image_app)
 app.register_blueprint(wpdf.wPdf)
 
 
