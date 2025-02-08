@@ -14,7 +14,7 @@ from urllib.parse import unquote
 import pypandoc
 from PIL import Image
 from io import BytesIO
-
+import PyMuPDF
 
 wPdf = Blueprint('workingPdf', __name__ )
 
@@ -270,19 +270,25 @@ def merge_pdf():
         </body>
         </html>
     '''
+# 
+# @wPdf.route('/extract_text', methods=['POST', 'GET'])
+  # Instead of fitz
 
 @wPdf.route('/extract_text', methods=['POST', 'GET'])
 def extract_text():
     if request.method == 'POST':
         uploaded_file = request.files['file']
         page_number = int(request.form.get('page_number', 0))
-        pdf_document = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        pdf_document = PyMuPDF.open(stream=uploaded_file.read(), filetype="pdf")
 
         if page_number > 0 and page_number <= len(pdf_document):
             page = pdf_document.load_page(page_number - 1)
             text_content = page.get_text()
         else:
             text_content = "Invalid page number."
+        
+        return text_content
+
 
         return render_template_string('''
             <!DOCTYPE html>

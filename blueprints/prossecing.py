@@ -1,8 +1,8 @@
 from flask import Blueprint, current_app, render_template, send_from_directory
 from pdf2image import convert_from_path
 import os
-import fitz
-# import PyMuPDF
+# import fitz
+import PyMuPDF
 # from pdf2docx import Document
 
 
@@ -10,7 +10,7 @@ image_app = Blueprint('image_app', __name__)
 
 @image_app.route('/pdf_to_image/<filename>/<extension>')
 def pdf_to_image(filename, extension):
-    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    file_path = PyMuPDF.path.join(current_app.config['UPLOAD_FOLDER'], filename)
     
     # Ensure the file exists
     if not os.path.exists(file_path):
