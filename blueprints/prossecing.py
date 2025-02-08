@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, current_app
 import os
-import fitz  # PyMuPDF
+import fitz
+# import PyMuPDF
 # from pdf2docx import Document
 
 

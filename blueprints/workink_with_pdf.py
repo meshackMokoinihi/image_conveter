@@ -1,5 +1,6 @@
 from flask import Flask, Blueprint, request, render_template_string, render_template, send_from_directory, send_file
 import os
+from fpdf import FPDF
 from pdf2image import convert_from_bytes
 from flask import Flask, request, render_template_string
 import fitz  # PyMuPDF
